@@ -2,6 +2,7 @@ const userModel = require("../models/userModel");
 const bookModel = require("../models/bookModel");
 const mongoose = require("mongoose");
 
+const ObjectId = require('mongoose').Types.ObjectId;
 
 
 const isValid = function (value) {
@@ -13,6 +14,18 @@ const isValid = function (value) {
     return true
 
 }
+
+//===============================================================
+function isValidObjectId(id) {
+
+  if (ObjectId.isValid(id)) {
+      if ((String)(new ObjectId(id)) === id)
+          return true;
+      return false
+  }
+  return false
+}
+//=======================================================================
 
 const createBook = async function (req, res) {
     try{
@@ -62,16 +75,16 @@ const createBook = async function (req, res) {
 
         if (typeof (data.subcategory) == "object") {
             if (data.subcategory.length == 0) {
-                return res.status(400).send({ msg: "tags should not be empty" })
+                return res.status(400).send({ msg: "subcategory should not be empty" })
             }
             console.log("len",data.subcategory.length)
             for (i = 0; i < data.subcategory.length; i++) {
                 if (typeof (data.subcategory[i]) != "string") {
-                    return res.status(400).send({ msg: "tags should be array of string" })
+                    return res.status(400).send({ msg: "subcategory should be array of string" })
                 } console.log(data.subcategory,"vinay")
                 if (data.subcategory[i].toString().trim().length == 0) {
                     console.log("In Trim")
-                    return res.status(400).send({ msg: " tags should not be blank after trim" })
+                    return res.status(400).send({ msg: " subcategory should not be blank after trim" })
                 }
             }
         } else {
@@ -101,7 +114,7 @@ const createBook = async function (req, res) {
   
       
       if (data.userId) {
-        if (mongoose.Types.ObjectId.isValid(data.userId) == false) {
+        if (isValidObjectId(data.userId) == false) {
           return res.status(400).send({ status: false, message: "userId Invalid" });
         }
       }
@@ -136,6 +149,91 @@ const createBook = async function (req, res) {
         res.status(500).send({ status: false, error: err.message })
     }
 }
+    
+
+
+const getBook = async function (req, res) {
+    
+    try{
+    let query = req.query;
+    
+    query.isDeleted = false
+    
+    //=========================================================
+    if (userId != null) {
+      r = isValidObjectId(query.userId)
+      // console.log(r)
+      if (r == false) { return res.status(400).send({ msg: "inavalid id format" }) }
+  }
+
+    
+    
+    //==========================================================
+
+
+
+      let findBook = await bookModel.find(query).select({ _id: 1,title: 1, excerpt: 1, userId: 1,category: 1, releasedAt: 1, reviews: 1, }).sort({ title: 1 });
+
       
+      if (!findBook) {
+        return res.status(404).send({ status: false, message: "Book not found" });
+      }
+      return res.status(200).send({ status: true, message: "Success", data: findBook });
+    }
+    catch (err) {
+      res.status(500).send({ status: false, error: err.message })
+  }
+}
+
+
+
+
+
+
+
+const deleteBook = async function (req, res) {
+  try {
+      //console.log("hi");
+      const bookId = req.params.bookId;
+
+
+
+
+      //=========================================================
+    if (bookId != null) {
+      r = isValidObjectId(bookId)
+      // console.log(r)
+      if (r == false) { return res.status(400).send({ msg: "inavalid id format" }) }
+  }
+
+    
+    
+    //==========================================================
+
+
+      const book = await bookModel.findOne({_id:bookId,isDeleted:false});
+      //console.log(book);
+
+      // check Book
+      if (!book) {
+          return res.status(404).send({status: false,message:"No such book exists"});
+      }
+      //   if (book.isDeleted == true) {
+      //      return res.status(404).send({ status: false, message: "Book not found or has already been deleted" })
+      //   }
+      
+     await bookModel.updateOne({ _id: bookId },{$set: { isDeleted: true ,deletedAt: Date.now()} } );
+  //   await Review.updateMany({bookId: bookId}, { isDeleted: true })
+    return res.status(200).send({status: true, message: "Book deleted successfully"});
+  }
+  catch (err) {
+     return res.status(500).send({status: false, error: err.message })
+  }
+}
+
+  
+
     
     module.exports.createBook=createBook
+    module.exports.getBook=getBook
+    module.exports.deleteBook=deleteBook

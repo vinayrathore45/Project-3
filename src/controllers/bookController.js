@@ -1,6 +1,7 @@
 const userModel = require("../models/userModel");
 const bookModel = require("../models/bookModel");
 const mongoose = require("mongoose");
+const { rawListeners } = require("../models/userModel");
 
 const ObjectId = require('mongoose').Types.ObjectId;
 
@@ -20,7 +21,7 @@ function isValidObjectId(id) {
 
 const isValid = function (value) {
     if (typeof (value) === "undefined" || typeof (value) === null) return false;
-    console.log(typeof(value))
+    // console.log(typeof(value))
     if (typeof (value) == "number" ) return false;
     if (typeof (value) === "string" && value.trim().length === 0) return false;
    // if(typeof (value)!= "string") return false
@@ -181,16 +182,52 @@ const getBook = async function (req, res) {
       if (r == false) { return res.status(400).send({ msg: "inavalid id format" }) }
   }
 
+//================================================================
+//   if (query.subcategory != null) { //bcoz not required true
+
+//     if (typeof (query.subcategory) == "object") {
+//         if (query.subcategory.length == 0) {
+//             return res.status(400).send({ msg: "subcategory should not be empty" })
+//         }
+//         console.log("len",query.subcategory.length)
+//         for (i = 0; i < query.subcategory.length; i++) {
+//             if (typeof (query.subcategory[i]) != "string") {
+//                 return res.status(400).send({ msg: "subcategory should be array of string" })
+//             } console.log(query.subcategory,"vinay")
+//             if (query.subcategory[i].toString().trim().length == 0) {
+//                 console.log("In Trim")
+//                 return res.status(400).send({ msg: " subcategory should not be blank after trim" })
+//             }
+//         }
+//     } else {
+//         if (typeof (query.subcategory) != "string") {
+//             return res.status(400).send({ msg: "tags should be string " })
+//         }
+//         if (query.subcategory.trim().length == 0) {
+//             return res.status(400).send({ msg: " tags should not be blank" })
+//         }
+//     }
+// }
+//===============================================================
+// if (!data.category) {
+//   return res.status(400).send({ status: false, message: "Please provide category" });
+// }
+  if(query.category !=null) {
+if (!isValid(query.category)) return res.status(400).send({ status: false, message: "category is not correct." })
+  }
     
+if(query.subcategory !=null) {
+ if (!isValid(query.subcategory)) return res.status(400).send({ status: false, message: "subcategory is not correct." })
+      }
     
     //==========================================================
 
 
 
       let findBook = await bookModel.find(query).select({ _id: 1,title: 1, excerpt: 1, userId: 1,category: 1, releasedAt: 1, reviews: 1, }).sort({ title: 1 });
-
+          console.log(findBook)
       
-      if (!findBook) {
+      if (findBook.length==0) {
         return res.status(404).send({ status: false, message: "Book not found" });
       }
       return res.status(200).send({ status: true, message: "Success", data: findBook });
@@ -200,11 +237,126 @@ const getBook = async function (req, res) {
   }
 }
 
+//==============================================getBOOK  BY ID=======================================//
+
+
+
+const getBooksById = async function (req, res) {
+  try {
+      const bookId = req.params.bookId;
+      if (!isValidObjectId(bookId)) {
+          return res.status(400).send({ status: false, msg: "invalid bookId" })
+      }
+      if (Object.keys(bookId).length === 0) {
+          return res.status(400).send({ status: false, message: "book id is not present" })
+      }
+
+     
+
+      const foundedBook = await bookModel.findOne({_id:bookId}).select({ __v: 0 })
+      console.log(foundedBook)
+
+      if (!foundedBook) {
+          return res.status(404).send({ status: false, message: "book not found" })
+      }
+      const availableReviews = await reviewModel.find({ bookId: foundedBook._id, isDeleted: false }).select({ isDeleted: 0, createdAt: 0, updateAt: 0, __v: 0 })
+
+      // foundedBook._doc["reviewData"] = availableReviews
+      foundedBook.reviewData= availableReviews
+      return res.status(200).send({ status: true, message: "Books list", data: foundedBook })
+
+
+  } catch (error) { res.status(500).send({ msg: error.message }) }
+}
 
 
 
 
 
+
+
+
+
+
+
+      
+////===========================//======================updateBook API==========================//====================////
+
+
+const updateBook = async function (req,res){
+ let bookId= req.params.bookId
+//  console.log(bookId)
+
+if (bookId!= null) {
+  r = isValidObjectId(bookId)
+  // console.log(r)
+  if (r == false) { return res.status(400).send({ msg: "inavalid id format" }) }
+}
+
+//==================================================
+
+const user= await bookModel.findOne({_id:bookId,isDeleted:false}).select({_id:0,userId:1})
+if(user== null) return res.status(400).send({status:false,message:"no such user"})
+console.log(user)
+console.log(req.userlogedin)
+
+if( req.userlogedin.userId != user.userId){return res.status(403).send("forbidden")}
+
+
+
+
+
+
+
+
+//====================================================
+ 
+
+ let body =req.body
+ if(!isvalidRequest(body)){
+  return res.status(400).send({status:false,message: "enter user details"});  
+ }
+
+  let title =body.title
+  if(title != null){
+  if (!isValid(title)) return res.status(400).send({ status: false, message: "title is not correct." })
+  }
+
+
+let excerpt = body.excerpt
+if(excerpt != null){
+  if (!isValid(excerpt)) return res.status(400).send({ status: false, message: " excrept is not correct." })
+  }
+
+
+let releasedAt= body.releasedAt
+if(releasedAt != null){
+if (!isValid(releasedAt)) return res.status(400).send({ status: false, message: "releasedAt is not correct." })   
+const dateRegex =/^(18|20)\d\d[- /.](0[1-9]|1[012])[- /.](0[1-9]|[12][0-9]|3[01])$/.test(releasedAt);
+if (!dateRegex) {
+  return res.status(400).send({ status: false, message: "Please provide valid date in this formate YYYY-MM-DD"});
+}
+}
+
+let ISBN =body.ISBN
+if(ISBN != null){
+if (!isValid(ISBN)) return res.status(400).send({ status: false, message: "ISBN is not correct." })
+const ISBNRegex=/^\+?([1-9]{3})\)?[-. ]?([0-9]{10})$/.test(ISBN);
+if (!ISBNRegex) {
+  return res.status(400).send({ status: false, message: "Please provide valid ISBN format" });
+}
+}
+ 
+ let checkUnique= await bookModel.find({$or:[{title:title},{ISBN:ISBN}]})
+ if(checkUnique.length!=0) return res.status(400).send({status:false,message:"already present in DB"})
+
+ let updateBook = await bookModel.findOneAndUpdate({_id:bookId,isDeleted:false},{$set:body},{new:true})
+ if(!updateBook) return res.status(404).send({status:false, message:"No such book present"})
+ return res.status(200).send({ status: true, message:"Success",data:updateBook  })
+
+
+}
+//================================DELETE API==============================================//
 
 const deleteBook = async function (req, res) {
   try {
@@ -247,41 +399,6 @@ const deleteBook = async function (req, res) {
 }
     
     
-      
-////===========================//======================updateBook API==========================//====================////
-
-
-const updateBook = async function (req,res){
- let bookId= req.params.bookId
-//  console.log(bookId)
- if (bookId!= null) {
-  r = isValidObjectId(bookId)
-  // console.log(r)
-  if (r == false) { return res.status(400).send({ msg: "inavalid id format" }) }
-}
-
- let body =req.body
- if(!isvalidRequest(body)){
-  return res.status(400).send({status:false,message: "enter user details"});  
- }
-
-  let title =body.title
-  if (!isValid(title)) return res.status(400).send({ status: false, message: "title is not correct." })
-
-let excerpt = body.excerpt
-let releaseDate= body.releaseDate
-let ISBN =body.ISBN
- 
- let checkUnique= await bookModel.find({$or:[{title:title},{ISBN:ISBN}]})
- if(checkUnique.length!=0) return res.status(400).send({status:false,message:"already present in DB"})
-
- let updateBook = await bookModel.findOneAndUpdate({_id:bookId,isDeleted:false},{$set:body},{new:true})
- if(!updateBook) return res.status(404).send({status:false, message:"No such book present"})
- return res.status(200).send({ status: true, message:"Success",data:updateBook  })
-
-
-}
-
 
     
 

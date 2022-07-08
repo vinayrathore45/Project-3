@@ -10,10 +10,10 @@ const jwt = require('jsonwebtoken');
 
 
 const isValid = function (value) {
-    if (typeof value === "undefined" || value === null) return false;
+    if (typeof value === "undefined" || value === null ) return false;
     if (typeof value === "string" && value.trim().length === 0) return false;
-    if (typeof value === "string") 
-      return true;
+    if (typeof value === "number") return false;
+
   };
 
   const isvalidRequest = function (requestBody) {
@@ -51,6 +51,7 @@ let createUser = async function (req,res){
         return res.status(400).send({ status: false, message: "title should be Mr, Mrs or Miss" })
     }
     // if(!user.name)return res.status(400).send({ msg: " Name is required " })
+    console.log(isValid(user.name))
     if(!isValid(user.name))return res.status(400).send({ status:false, message:"please provide  Name in string format"  })
     if((/\d/g.test(user.name)))return res.status(400).send({ status: false, message: "Number is not allowed in name" })
     // let f =user.name

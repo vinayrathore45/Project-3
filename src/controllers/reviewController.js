@@ -8,7 +8,7 @@ const reviewModel = require("../models/reviewModel");
 //     return true;
 // };
 const isValid = function (value) {
-    if (typeof (value) === "undefined" || typeof (value) === null) return false;
+    //if (typeof (value) === "undefined" || typeof (value) === null) return false;
     // console.log(typeof(value))
     if (typeof (value) == "number" ) return false;
     if (typeof (value) === "string" && value.trim().length === 0) return false;
@@ -43,8 +43,8 @@ const createReview = async function (req, res) {
         let bookId = req.params.bookId
         console.log(bookId)
 
-        if (!bookId)
-            return res.status(400).send({ status: false, msg: "Bad Request, please provide BookId in params" })
+        // if (!bookId)
+        //     return res.status(400).send({ status: false, msg: "Bad Request, please provide BookId in params" })
 
         let check = await bookModel.findOne({ _id: bookId, isDeleted: false })
         console.log(check)
@@ -52,30 +52,34 @@ const createReview = async function (req, res) {
             return res.status(404).send({ status: false, message: "No book found bhai " })
         } else {
             let data = req.body
-            let { review, rating } = data
+            let { review, rating,reviewedBy } = data
 
             if (!isvalidRequest(data)) {
                 return res.status(400).send({ status: false, msg: "please provide  details" })
+            }
+            if (!isValid(reviewedBy)) {
+                return res.status(400).send({ status: false, msg: "Not a valid name" })
             }
 
             if (!isValid(review)) {
                 return res.status(400).send({ status: false, msg: "Not a valid review" })
             }
+
             if (!(rating >= 1 && rating <= 5)) {
                 return res.status(400).send({ status: false, msg: "Rating is must  and should be in between 1-5 " })
             }
 
             data.reviewedAt = new Date()
             data.bookId = bookId
-            let newReview = await bookModel.findOneAndUpdate({ _id: bookId }, {
+            let newReview = await bookModel.findOneAndUpdate({ _id: bookId }, {$set:{
                 $inc: {
-                    review: 1
-                },
-            }, { new: true, upsert: true })
+                    reviews: 1
+                }
+            }}, { new: true})
 
             let savedData = await reviewModel.create(data)
-            newReview._doc["reviewData"] = savedData
-            return res.status(201).send({ status: true, data: newReview })
+             newReview._doc["reviewData"] = savedData
+            return res.status(201).send({ status: true, data:newReview  })
         }
     }
     catch (error) {

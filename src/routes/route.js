@@ -16,4 +16,11 @@ router.put('/books/:bookId',MW.authentication,BookController.updateBook)
 router.post('/books/:bookId/review', reviewController.createReview)
 
 
+router.all("/**",function(req,res){
+    res.status(400).send({
+        status:false,msg:"The endpoint is not correct"
+    });
+});
+
+
 module.exports = router

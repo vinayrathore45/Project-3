@@ -14,6 +14,8 @@ const isValid = function (value) {
     if (typeof value === "string" && value.trim().length === 0) return false;
     if (typeof value === "number") return false;
 
+    return true
+
   };
 
   const isvalidRequest = function (requestBody) {
@@ -73,6 +75,15 @@ let createUser = async function (req,res){
       if (!(/^\w+([\.-]?\w+)@\w+([\.-]?\w+)(\.\w{2,3})+$/.test(user.email))) return res.status(400).send({ status: false, message: "email Id is invalid" })
       let emailId = await userModel.findOne({email : user.email})
     if(emailId)return res.status(400).send({status:false, message:"this EmailId already exist"})
+
+
+    //if(user.address){}
+    // address={}
+    // address=user.address
+     
+
+
+
     
 
     if(!user.password)return res.status(400).send({ msg: " Password name is required " })
@@ -116,10 +127,10 @@ const userLogin = async function (req, res) {
       if(!pass(data.password)) return res.status(400).send({status:false,message : "password range should 8-15 and should not contain space"})
      
      
-      const checkValidUser = await userModel.findOne({ email: data.email });
+      const checkValidUser = await userModel.findOne({ email: data.email,password:data.password });
 
     if (!checkValidUser) {
-      return res.status(401).send({ status: false, message: "Email Id is not correct" });
+      return res.status(401).send({ status: false, message: "Email Id or password  is not correct" });
     }
     
     // let checkPassword = await bcrypt.compare(data.password, checkValidUser.password);

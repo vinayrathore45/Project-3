@@ -43,9 +43,28 @@ const createBook = async function (req, res) {
     if (!isvalidRequest(data)) {
       return res.status(400).send({ status: false, message: "enter user details" });
     }
+      
+    if (!data.userId) {
+      return res.status(400).send({ status: false, message: "Please provide userId" });
+    }
+
+    if (!isValid(data.userId)) return res.status(400).send({ status: false, message: "userId is not correct." })
+
+    //=========================================================
+    if (data.userId != null) {
+      r = isValidObjectId(data.userId)
+      // console.log(r)
+      if (r == false) { return res.status(400).send({ msg: "inavalid id format" }) }
+    }
+
+
+
+    //==========================================================
 
    //===================authorization=================================== 
 
+   
+   console.log("DATA          ",data.userId)
     if (req.userlogedin.userId != data.userId) { return res.status(403).send("forbidden") }
 
 
@@ -66,11 +85,11 @@ const createBook = async function (req, res) {
 
     if (!isValid(data.excerpt)) return res.status(400).send({ status: false, message: "excerpt is not correct." })
 
-    if (!data.userId) {
-      return res.status(400).send({ status: false, message: "Please provide userId" });
-    }
+    // if (!data.userId) {
+    //   return res.status(400).send({ status: false, message: "Please provide userId" });
+    // }
 
-    if (!isValid(data.userId)) return res.status(400).send({ status: false, message: "userId is not correct." })
+    // if (!isValid(data.userId)) return res.status(400).send({ status: false, message: "userId is not correct." })
 
 
     if (!data.ISBN) {
@@ -133,18 +152,21 @@ const createBook = async function (req, res) {
     }
 
 
-    //=========================================================
-    if (data.userId != null) {
-      r = isValidObjectId(data.userId)
-      // console.log(r)
-      if (r == false) { return res.status(400).send({ msg: "inavalid id format" }) }
+    // //=========================================================
+    // if (data.userId != null) {
+    //   r = isValidObjectId(data.userId)
+    //   // console.log(r)
+    //   if (r == false) { return res.status(400).send({ msg: "inavalid id format" }) }
+    // }
+
+
+
+    // //==========================================================
+
+    let checkTitle = await bookModel.findOne({ title: data.title });
+    if (checkTitle) {
+      return res.status(400).send({ status: false, message: " already exist use different title of book" });
     }
-
-
-
-    //==========================================================
-
-
 
     const ISBNRegex = /^\+?([1-9]{3})\)?[-. ]?([0-9]{10})$/.test(data.ISBN);
     if (!ISBNRegex) {
@@ -152,10 +174,10 @@ const createBook = async function (req, res) {
     }
 
 
-    let checkTitle = await bookModel.findOne({ title: data.title });
-    if (checkTitle) {
-      return res.status(400).send({ status: false, message: " already exist use different title of book" });
-    }
+    // let checkTitle = await bookModel.findOne({ title: data.title });
+    // if (checkTitle) {
+    //   return res.status(400).send({ status: false, message: " already exist use different title of book" });
+    // }
 
     let checkISBN = await bookModel.findOne({ ISBN: data.ISBN });
     if (checkISBN) {

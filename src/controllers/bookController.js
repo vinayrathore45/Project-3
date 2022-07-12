@@ -85,11 +85,11 @@ const createBook = async function (req, res) {
 
     if (!isValid(data.excerpt)) return res.status(400).send({ status: false, message: "excerpt is not correct." })
 
-    // if (!data.userId) {
-    //   return res.status(400).send({ status: false, message: "Please provide userId" });
-    // }
+    if (!data.userId) {
+      return res.status(400).send({ status: false, message: "Please provide userId" });
+    }
 
-    // if (!isValid(data.userId)) return res.status(400).send({ status: false, message: "userId is not correct." })
+    if (!isValid(data.userId)) return res.status(400).send({ status: false, message: "userId is not correct." })
 
 
     if (!data.ISBN) {

@@ -110,15 +110,15 @@ const updateReview = async function (req, res) {
 
 
   
-      if (reviewedBy) {
+      if (reviewedBy!=null) {
         if (!isValid(reviewedBy)) return res.status(400).send({ status: false, message: "Please Enter Reviewr's name" })
       }
   
-      if (review) {
+      if (review!=null) {
         if (!isValid(review)) return res.status(400).send({ status: false, message: "Please Enter Review" })
       }
   
-      if (rating) {
+      if (rating!=null) {
         if (!(/^[1-5]$/).test(rating)) return res.status(400).send({ status: false, message: "Enter Rating Between 1 to 5" })
       }
       const myFilter = {

@@ -165,7 +165,7 @@ const createBook = async function (req, res) {
 
     let checkTitle = await bookModel.findOne({ title: data.title });
     if (checkTitle) {
-      return res.status(400).send({ status: false, message: " already exist use different title of book" });
+      return res.status(409).send({ status: false, message: " already exist use different title of book" });
     }
 
     const ISBNRegex = /^\+?([1-9]{3})\)?[-. ]?([0-9]{10})$/.test(data.ISBN);
@@ -181,7 +181,7 @@ const createBook = async function (req, res) {
 
     let checkISBN = await bookModel.findOne({ ISBN: data.ISBN });
     if (checkISBN) {
-      return res.status(400).send({ status: false, message: "already exist use different ISBN" });
+      return res.status(409).send({ status: false, message: "already exist use different ISBN" });
     }
 
 
@@ -333,12 +333,12 @@ const updateBook = async function (req, res) {
 
 
 
-  const user = await bookModel.findOne({ _id: bookId, isDeleted: false }).select({ _id: 0, userId: 1 })
-  if (user == null) return res.status(404).send({ status: false, message: "no such book" })
-  console.log(user)
-  console.log(req.userlogedin)
+  // const user = await bookModel.findOne({ _id: bookId, isDeleted: false }).select({ _id: 0, userId: 1 })
+  // if (user == null) return res.status(404).send({ status: false, message: "no such book" })
+  // console.log(user)
+  // console.log(req.userlogedin)
 
-  if (req.userlogedin.userId != user.userId) { return res.status(403).send("forbidden") }
+  // if (req.userlogedin.userId != user.userId) { return res.status(403).send("forbidden") }
 
   //====================================================
 
@@ -349,6 +349,7 @@ const updateBook = async function (req, res) {
   }
 
   let title = body.title
+  console.log(typeof title,"gth")
   if (title != null) {
     if (!isValid(title)) return res.status(400).send({ status: false, message: "title is not correct." })
   }
@@ -379,7 +380,7 @@ const updateBook = async function (req, res) {
   }
 
   let checkUnique = await bookModel.find({ $or: [{ title: title }, { ISBN: ISBN }] })
-  if (checkUnique.length != 0) return res.status(400).send({ status: false, message: " title or ISBN is already present in DB" })
+  if (checkUnique.length != 0) return res.status(409).send({ status: false, message: " title or ISBN is already present in DB" })
 
   let updateBook = await bookModel.findOneAndUpdate({ _id: bookId, isDeleted: false }, { $set: body }, { new: true })
   if (!updateBook) return res.status(404).send({ status: false, message: "No such book present" })

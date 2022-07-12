@@ -67,14 +67,14 @@ let createUser = async function (req,res){
     if(!isValid(user.phone))return res.status(400).send({ status:false, message:"please provide  phone in string format"  })
     if(!(/^[6-9]{1}[0-9]{9}$/.test(user.phone)))  return res.status(400).send({ status: false, message: "Phone No is invalid. +91 is not required" })
     let mobileNo = await userModel.findOne({phone : user.phone})
-      if (mobileNo)return res.status(400).send({status:false, message:"this number already exist"})
+      if (mobileNo)return res.status(409).send({status:false, message:"this number already exist"})
 
       if(!user.email)return res.status(400).send({ msg: " Email name is required " })
     if(!isValid(user.email))return res.status(400).send({ status:false, message:"please provide  email in string format"  })
 
       if (!(/^\w+([\.-]?\w+)@\w+([\.-]?\w+)(\.\w{2,3})+$/.test(user.email))) return res.status(400).send({ status: false, message: "email Id is invalid" })
       let emailId = await userModel.findOne({email : user.email})
-    if(emailId)return res.status(400).send({status:false, message:"this EmailId already exist"})
+    if(emailId)return res.status(409).send({status:false, message:"this EmailId already exist"})
 
 
     //if(user.address){}

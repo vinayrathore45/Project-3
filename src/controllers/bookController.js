@@ -285,7 +285,7 @@ const getBooksById = async function (req, res) {
 
 
 
-    const foundedBook = await bookModel.findOne({ _id: bookId }).select({ __v: 0 })
+    const foundedBook = await bookModel.findOne({ _id: bookId ,isDeleted:false}).select({ __v: 0 })
     console.log(foundedBook)
 
     if (!foundedBook) {
@@ -334,7 +334,7 @@ const updateBook = async function (req, res) {
 
 
   const user = await bookModel.findOne({ _id: bookId, isDeleted: false }).select({ _id: 0, userId: 1 })
-  if (user == null) return res.status(400).send({ status: false, message: "no such user" })
+  if (user == null) return res.status(404).send({ status: false, message: "no such book" })
   console.log(user)
   console.log(req.userlogedin)
 
@@ -379,7 +379,7 @@ const updateBook = async function (req, res) {
   }
 
   let checkUnique = await bookModel.find({ $or: [{ title: title }, { ISBN: ISBN }] })
-  if (checkUnique.length != 0) return res.status(400).send({ status: false, message: "already present in DB" })
+  if (checkUnique.length != 0) return res.status(400).send({ status: false, message: " title or ISBN is already present in DB" })
 
   let updateBook = await bookModel.findOneAndUpdate({ _id: bookId, isDeleted: false }, { $set: body }, { new: true })
   if (!updateBook) return res.status(404).send({ status: false, message: "No such book present" })
@@ -409,7 +409,7 @@ const deleteBook = async function (req, res) {
     //==========================authorization==================
 
     const user = await bookModel.findOne({ _id: bookId, isDeleted: false }).select({ _id: 0, userId: 1 })
-    if (user == null) return res.status(400).send({ status: false, message: "no such user" })
+    if (user == null) return res.status(404).send({ status: false, message: "no such book" })
     console.log(user)
     console.log(req.userlogedin)
 

@@ -137,7 +137,7 @@ const updateReview = async function (req, res) {
       let bookId = req.params.bookId
       if (!mongoose.Types.ObjectId.isValid(bookId)) return res.status(400).send({ status: false, message: "invalid BookId" })
        const requiredBook = await bookModel.findOne({ _id: bookId, isDeleted: false })
-       if (!requiredBook) return res.status(400).send({ status: false, message: "No Such book present" })
+       if (!requiredBook) return res.status(404).send({ status: false, message: "No Such book present" })
        const reviewId = req.params.reviewId;
       if (!mongoose.Types.ObjectId.isValid(reviewId)) return res.status(400).send({ status: false, message: "invalid reviewId" })
       const requiredReview = await reviewModel.findOne({ _id: reviewId, isDeleted: false })
@@ -146,7 +146,7 @@ const updateReview = async function (req, res) {
   
       
       const deletedReview = await reviewModel.findOneAndUpdate({ _id: reviewId,bookId:bookId }, { isDeleted: true, deletedAt: new Date() }, { new: true })
-      if(!deletedReview){return res.status(400).send({msg:"no such review exist of tha book"})}
+      if(!deletedReview){return res.status(404).send({msg:"no such review exist of tha book"})}
       //const totalReview = await reviewModel.find({ bookId: bookId, isDeleted: false})
       
       //console.log(totalReview,"  tr       ")

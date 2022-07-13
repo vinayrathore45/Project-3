@@ -333,12 +333,12 @@ const updateBook = async function (req, res) {
 
 
 
-  // const user = await bookModel.findOne({ _id: bookId, isDeleted: false }).select({ _id: 0, userId: 1 })
-  // if (user == null) return res.status(404).send({ status: false, message: "no such book" })
-  // console.log(user)
-  // console.log(req.userlogedin)
+  const user = await bookModel.findOne({ _id: bookId, isDeleted: false }).select({ _id: 0, userId: 1 })
+  if (user == null) return res.status(404).send({ status: false, message: "no such book" })
+  console.log(user)
+  console.log(req.userlogedin)
 
-  // if (req.userlogedin.userId != user.userId) { return res.status(403).send("forbidden") }
+  if (req.userlogedin.userId != user.userId) { return res.status(403).send("forbidden") }
 
   //====================================================
 

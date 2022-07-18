@@ -61,3 +61,13 @@
 //    let x =arr.split("")
 
 //   console.log(x)
+
+
+getName()
+
+console.log(getName)
+
+var getName= function(){
+    console.log("Hello")
+}
+

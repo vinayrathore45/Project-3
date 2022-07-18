@@ -2,7 +2,7 @@ const userModel = require("../models/userModel");
 const bookModel = require("../models/bookModel");
 const reviewModel = require("../models/reviewModel");
 const mongoose = require("mongoose");
-
+const aws= require("aws-sdk")
 
 const ObjectId = require('mongoose').Types.ObjectId;
 
@@ -33,6 +33,66 @@ const isValid = function (value) {
 const isvalidRequest = function (requestBody) {
   return Object.keys(requestBody).length > 0
 }
+
+
+//=================================================AWS===============================================================
+aws.config.update({
+  accessKeyId: "AKIAY3L35MCRVFM24Q7U",
+  secretAccessKey: "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",
+  region: "ap-south-1"
+})
+
+let uploadFile= async ( file) =>{
+ return new Promise( function(resolve, reject) {
+  // this function will upload file to aws and return the link
+  let s3= new aws.S3({apiVersion: '2006-03-01'}); // we will be using the s3 service of aws
+
+  var uploadParams= {
+      ACL: "public-read",
+      Bucket: "classroom-training-bucket",  //HERE
+      Key: "abc/" + file.originalname, //HERE 
+      Body: file.buffer
+  }
+
+
+  s3.upload( uploadParams, function (err, data ){
+      if(err) {
+          return reject({"error": err})
+      }
+      console.log(data)
+      console.log("file uploaded succesfully")
+      return resolve(data.Location)
+  })
+
+  // let data= await s3.upload( uploadParams)
+  // if( data) return data.Location
+  // else return "there is an error"
+
+ })
+}
+
+const awsFunction = async function(req,res){
+  try{
+    let files= req.files
+    if(files && files.length>0){
+        //upload to s3 and get the uploaded link
+        // res.send the link back to frontend/postman
+        let uploadedFileURL= await uploadFile( files[0] )
+        res.status(201).send({msg: "file uploaded succesfully", data: uploadedFileURL})
+    }
+    else{
+        res.status(400).send({ msg: "No file found" })
+    }
+    
+}
+catch(err){
+    res.status(500).send({msg: err})
+}
+
+}
+
+
+//===================================================================================================================
 
 
 
@@ -363,6 +423,7 @@ const updateBook = async function (req, res) {
 
   let releasedAt = body.releasedAt
   if (releasedAt != null) {
+
     if (!isValid(releasedAt)) return res.status(400).send({ status: false, message: "releasedAt is not correct." })
     const dateRegex = /^(18|20)\d\d[- /.](0[1-9]|1[012])[- /.](0[1-9]|[12][0-9]|3[01])$/.test(releasedAt);
     if (!dateRegex) {
@@ -455,3 +516,4 @@ module.exports.getBook = getBook
 module.exports.getBooksById = getBooksById
 module.exports.deleteBook = deleteBook
 module.exports.updateBook = updateBook
+module.exports.awsFunction = awsFunction

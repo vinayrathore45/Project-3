@@ -16,7 +16,7 @@ router.put('/books/:bookId',MW.authentication,BookController.updateBook)
 router.post('/books/:bookId/review', reviewController.createReview)
 router.put('/books/:bookId/review/:reviewId',reviewController.updateReview)
 router.delete('/books/:bookId/review/:reviewId',reviewController.deleteReview)
-
+router.post("/awsFile",BookController.awsFunction)
 
 router.all("/*",function(req,res){
     res.status(400).send({
